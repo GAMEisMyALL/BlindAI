@@ -16,7 +16,15 @@ from torch import nn
 from torch.nn import functional as F
 from torch import distributions as torchd
 from torch.utils.tensorboard import SummaryWriter
+from ice_gym import ICEEnv
 
+def unwrap(env) -> ICEEnv:
+    if type(env) == ICEEnv:
+        return env
+    elif hasattr(env, "env"):
+        return unwrap(env.env)
+    elif hasattr(env, "_env"):
+        return unwrap(env._env)
 
 to_np = lambda x: x.detach().cpu().numpy()
 
@@ -153,7 +161,7 @@ async def simulate(
         if done.any():
             indices = [index for index, d in enumerate(done) if d]
             await asyncio.sleep(5)
-            results = [await envs[i].reset() for i in indices]
+            results = [await envs[i].reset(agent) for i in indices]
             # results = [r() for r in results]
             for index, result in zip(indices, results):
                 t = result.copy()
@@ -177,7 +185,7 @@ async def simulate(
             action = np.array(action)
         assert len(action) == len(envs)
         # step envs
-        results = [await e.step(a) for e, a in zip(envs, action)]
+        results = [await e.step(a, agent) for e, a in zip(envs, action)]
         # results = [r() for r in results]
         obs, reward, done = zip(*[p[:3] for p in results])
         obs = list(obs)

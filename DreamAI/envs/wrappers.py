@@ -31,10 +31,10 @@ class AsyncTimeLimit(gym.Wrapper):
         self._duration = duration
         self._step = None
 
-    async def step(self, action):
+    async def step(self, action, agent):
         if self._step is None:
-            await self.reset()
-        obs, reward, done, info = await self.env.step(action)
+            await self.reset(agent)
+        obs, reward, done, info = await self.env.step(action, agent)
         self._step += 1
         if self._step >= self._duration:
             done = True
@@ -43,9 +43,9 @@ class AsyncTimeLimit(gym.Wrapper):
             self._step = None
         return obs, reward, done, info
 
-    async def reset(self):
+    async def reset(self, agent):
         self._step = 0
-        return await self.env.reset()
+        return await self.env.reset(agent)
 
 
 class NormalizeActions(gym.Wrapper):
@@ -104,16 +104,16 @@ class AsyncOneHotAction(gym.Wrapper):
         space.discrete = True
         self.action_space = space
 
-    async def step(self, action):
+    async def step(self, action, agent):
         index = np.argmax(action).astype(int)
         reference = np.zeros_like(action)
         reference[index] = 1
         if not np.allclose(reference, action):
             raise ValueError(f"Invalid one-hot action:\n{action}")
-        return await self.env.step(index)
+        return await self.env.step(index, agent)
 
-    async def reset(self):
-        return await self.env.reset()
+    async def reset(self, agent):
+        return await self.env.reset(agent)
 
     def _sample_action(self):
         actions = self.env.action_space.n
@@ -159,11 +159,11 @@ class AsyncSelectAction(gym.Wrapper):
         super().__init__(env)
         self._key = key
 
-    async def step(self, action):
-        return await self.env.step(action[self._key])
+    async def step(self, action, agent):
+        return await self.env.step(action[self._key], agent)
     
-    async def reset(self):
-        return await self.env.reset()
+    async def reset(self, agent):
+        return await self.env.reset(agent)
 
 
 class UUID(gym.Wrapper):
@@ -183,10 +183,10 @@ class AsyncUUID(gym.Wrapper):
         timestamp = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
         self.id = f"{timestamp}-{str(uuid.uuid4().hex)}"
 
-    async def reset(self):
+    async def reset(self, agent):
         timestamp = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
         self.id = f"{timestamp}-{str(uuid.uuid4().hex)}"
-        return await self.env.reset()
+        return await self.env.reset(agent)
     
-    async def step(self, action):
-        return await self.env.step(action)
+    async def step(self, action, agent):
+        return await self.env.step(action, agent)

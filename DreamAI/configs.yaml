@@ -9,7 +9,7 @@ defaults:
   deterministic_run: False
   steps: 1e5
   parallel: False
-  eval_every: 1e4
+  eval_every: 2500
   eval_episode_num: 10
   log_every: 1e3
   reset_every: 0
@@ -68,7 +68,7 @@ defaults:
   pretrain: 100
   model_lr: 1e-4
   opt_eps: 1e-8
-  grad_clip: 1000
+  grad_clip: 100
   dataset_size: 1000000
   opt: 'adam'
 
@@ -134,17 +134,17 @@ fightingice:
   step: 1e5
   prefill: 2500
   eval_episode_num: 1
-  action_repeat: 2
+  action_repeat: 1
   envs: 1
-  train_ratio: 256
+  train_ratio: 512
   video_pred_log: true
-  dyn_hidden: 256
-  dyn_deter: 512
-  units: 256
+  dyn_hidden: 512
+  dyn_deter: 1024
+  units: 512
   size: [64, 64]
   encoder: {mlp_keys: '$^', cnn_keys: 'image', cnn_depth: 96, mlp_layers: 3, mlp_units: 256}
   decoder: {mlp_keys: '$^', cnn_keys: 'image', cnn_depth: 96, mlp_layers: 3, mlp_units: 256}
-  actor: {layers: 3, dist: 'onehot', std: 'none'}
+  actor: {layers: 3, entropy: 3e-1, dist: 'onehot', std: 'none'}
   value: {layers: 3}
   reward_head: {layers: 3}
   cont_head: {layers: 3}

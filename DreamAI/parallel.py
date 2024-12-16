@@ -215,8 +215,8 @@ class AsyncDamy:
     def __getattr__(self, name):
         return getattr(self._env, name)
 
-    async def step(self, action):
-        return await self._env.step(action)
+    async def step(self, action, agent):
+        return await self._env.step(action, agent)
 
-    async def reset(self):
-        return await self._env.reset()
+    async def reset(self, agent):
+        return await self._env.reset(agent)

@@ -308,6 +308,15 @@ async def main(config):
         logger,
         train_dataset,
     ).to(config.device)
+    dummy_agent = Dreamer(
+        train_envs[0].observation_space,
+        train_envs[0].action_space,
+        config,
+        logger,
+        train_dataset,
+    ).to(config.device)
+    for env in train_envs:
+        ice_tools.unwrap(env).set_entity_dreamer(dummy_agent)
     agent.requires_grad_(requires_grad=False)
     if (logdir / "latest.pt").exists():
         checkpoint = torch.load(logdir / "latest.pt")
@@ -318,6 +327,11 @@ async def main(config):
     # make sure eval will be executed once after config.steps
     while agent._step < config.steps + config.eval_every:
         logger.write()
+        for env in train_envs:
+            ice_tools.unwrap(env).add_dreamer_state_dict(agent.state_dict())
+            print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+            print("@ Checkpoint added as competitor @")
+            print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
         if config.eval_episode_num > 0:
             print("Start evaluation.")
             eval_policy = functools.partial(agent, training=False)
